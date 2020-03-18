@@ -15,30 +15,31 @@ declare interface PageListObject {
     };
   };
   allFile: {
-    nodes: Array<{
-      extension: string;
-      childAsciidoc: {
-        fields: {
-          slug: string;
+    edges: Array<{
+      node: {
+        childAsciidoc: {
+          fields: {
+            slug: string;
+          };
+          document: {
+            title: string;
+          };
+          revision: {
+            date: Date;
+          };
+          pageAttributes: {
+            description: string;
+          };
         };
-        document: {
-          title: string;
-        };
-        revision: {
-          date: Date;
-        };
-        pageAttributes: {
-          description: string;
-        };
-      };
-      childMarkdownRemark: {
-        excerpt: string;
-        fields: {
-          slug: string;
-        };
-        frontmatter: {
-          date: Date;
-          title: string;
+        childMarkdownRemark: {
+          excerpt: string;
+          fields: {
+            slug: string;
+          };
+          frontmatter: {
+            date: Date;
+            title: string;
+          };
         };
       };
     }>;
@@ -54,13 +55,13 @@ type ListItemObject = {
 
 export default (result: { data: PageListObject; location: { pathname: string } }) => {
   const data: PageListObject = result.data;
-  const pages = data.allFile.nodes
-    .filter((node) => {
-      return node.extension === 'adoc' || node.extension === 'md';
+  const pages = data.allFile.edges
+    .filter((edge) => {
+      return edge.node.childAsciidoc || edge.node.childMarkdownRemark;
     })
-    .map((node) => {
-      if (node.extension === 'adoc') {
-        const child = node.childAsciidoc;
+    .map((edge) => {
+      if (edge.node.childAsciidoc) {
+        const child = edge.node.childAsciidoc;
         const item: ListItemObject = {
           slug: child.fields.slug,
           title: child.document.title,
@@ -69,7 +70,7 @@ export default (result: { data: PageListObject; location: { pathname: string } }
         };
         return item;
       } else {
-        const child = node.childMarkdownRemark;
+        const child = edge.node.childMarkdownRemark;
         const item: ListItemObject = {
           slug: child.fields.slug,
           title: child.frontmatter.title,
@@ -112,38 +113,41 @@ export default (result: { data: PageListObject; location: { pathname: string } }
 
 export const pageQuery = graphql`
   query {
+    allFile(filter: { sourceInstanceName: { eq: "blog" }, extension: { regex: "/(md|adoc)/" } }) {
+      edges {
+        node {
+          childMarkdownRemark {
+            id
+            fields {
+              slug
+            }
+            excerpt
+            frontmatter {
+              date
+              title
+            }
+          }
+          childAsciidoc {
+            id
+            fields {
+              slug
+            }
+            document {
+              title
+            }
+            pageAttributes {
+              description
+            }
+            revision {
+              date
+            }
+          }
+        }
+      }
+    }
     site {
       siteMetadata {
         title
-      }
-    }
-    allFile(filter: { sourceInstanceName: { eq: "blog" }, extension: { regex: "/(md|adoc)/" } }) {
-      nodes {
-        extension
-        childAsciidoc {
-          fields {
-            slug
-          }
-          document {
-            title
-          }
-          revision {
-            date
-          }
-          pageAttributes {
-            description
-          }
-        }
-        childMarkdownRemark {
-          excerpt
-          fields {
-            slug
-          }
-          frontmatter {
-            date
-            title
-          }
-        }
       }
     }
   }
