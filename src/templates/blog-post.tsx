@@ -5,7 +5,7 @@ import 'moment/locale/ja';
 
 import React from 'react';
 import moment from 'moment';
-import { graphql } from 'gatsby';
+import { Link, graphql } from 'gatsby';
 
 declare interface PostObject {
   site: {
@@ -19,6 +19,7 @@ declare interface PostObject {
     frontmatter: {
       title: string;
       date: Date;
+      tags: Array<string>;
     };
   };
   asciidoc: {
@@ -31,6 +32,7 @@ declare interface PostObject {
     };
     pageAttributes: {
       description: string;
+      tags: Array<string>;
     };
   };
 }
@@ -39,6 +41,7 @@ declare interface PageObject {
   body: string;
   date: Date;
   description: string;
+  tags: Array<string>;
 }
 
 const formatPage: (data: PostObject) => PageObject = (data) => {
@@ -49,6 +52,7 @@ const formatPage: (data: PostObject) => PageObject = (data) => {
       body: post.html,
       date: post.frontmatter.date,
       description: post.excerpt,
+      tags: post.frontmatter.tags,
     };
     return formatPage;
   } else if (data.asciidoc) {
@@ -58,6 +62,7 @@ const formatPage: (data: PostObject) => PageObject = (data) => {
       body: post.html,
       date: post.revision.date,
       description: post.pageAttributes.description,
+      tags: post.pageAttributes.tags,
     };
     return formatPage;
   }
@@ -66,6 +71,7 @@ const formatPage: (data: PostObject) => PageObject = (data) => {
     body: 'エラー',
     date: new Date(),
     description: 'エラー',
+    tags: [],
   };
   return errorPage;
 };
@@ -94,6 +100,15 @@ export default (node: { data: PostObject; location: { pathname: string } }) => {
             }}
           >
             <time dateTime={moment(page.date).format()}>{moment(page.date).format('lll')}</time>
+            <span style={{ marginLeft: `1rem` }}>
+              {page.tags.map((tag, i) => {
+                return (
+                  <Link key={i} to={'/tags/' + tag} style={{ marginLeft: `0.25rem` }}>
+                    [{tag}]
+                  </Link>
+                );
+              })}
+            </span>
           </p>
         </header>
         <section dangerouslySetInnerHTML={{ __html: page.body }} />
@@ -116,6 +131,7 @@ export const query = graphql`
       frontmatter {
         title
         date
+        tags
       }
     }
     asciidoc(fields: { slug: { eq: $slug } }) {
@@ -128,6 +144,7 @@ export const query = graphql`
       }
       pageAttributes {
         description
+        tags
       }
     }
   }

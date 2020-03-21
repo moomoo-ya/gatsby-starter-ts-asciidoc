@@ -67,3 +67,72 @@ exports.createPages = async ({ graphql, actions }) => {
     });
   });
 };
+
+exports.createSchemaCustomization = ({ actions, schema }) => {
+  const { createTypes } = actions;
+  const typeDefs = `
+    type File implements Node {
+      childAsciidoc: Asciidoc
+      childMarkdownRemark: MarkdownRemark
+    }
+  `;
+  createTypes(typeDefs);
+
+  const markdownTypeDefs = `
+    type MarkdownRemark implements Node {
+      id: ID!
+      html: String!
+      excerpt: String!
+      fields: MarkdownRemarkFields
+      frontmatter: MarkdownRemarkFrontmatter
+    }
+    type MarkdownRemarkFields {
+      slug: String!
+    }
+    type MarkdownRemarkFrontmatter {
+      title: String!
+      date: Date
+      tags: [String]!
+    }
+  `;
+  createTypes(markdownTypeDefs);
+
+  const asciidocTypeDefs = `
+    type Asciidoc implements Node {
+      id: ID!
+      html: String!
+      document: AsciidocDocument
+      fields: AsciidocFields
+      revision: AsciidocRevision
+      pageAttributes: AsciidocPageAttributes
+    }
+    type AsciidocDocument {
+      title: String!
+    }
+    type AsciidocFields {
+      slug: String!
+    }
+    type AsciidocRevision {
+      date: Date
+    }
+  `;
+  createTypes(asciidocTypeDefs);
+
+  const additionalTypeDefs = [
+    schema.buildObjectType({
+      name: `AsciidocPageAttributes`,
+      fields: {
+        description: 'String',
+        tags: {
+          type: '[String]!',
+          resolve(parent) {
+            if (parent.tags) return JSON.parse(parent.tags.replace(/'/g, '"'));
+            else return [];
+          },
+        },
+      },
+      interfaces: [`Node`],
+    }),
+  ];
+  createTypes(additionalTypeDefs);
+};
