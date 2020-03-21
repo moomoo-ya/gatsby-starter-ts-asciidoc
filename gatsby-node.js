@@ -39,6 +39,16 @@ exports.createPages = async ({ graphql, actions }) => {
           }
         }
       }
+      markdownTags: allMarkdownRemark(limit: 1000) {
+        group(field: frontmatter___tags) {
+          fieldValue
+        }
+      }
+      asciidocTags: allAsciidoc(limit: 1000) {
+        group(field: pageAttributes___tags) {
+          fieldValue
+        }
+      }
     }
   `);
 
@@ -63,6 +73,23 @@ exports.createPages = async ({ graphql, actions }) => {
         // Data passed to context is available
         // in page queries as GraphQL variables.
         slug: node.fields.slug,
+      },
+    });
+  });
+
+  const tags = Array.from(
+    new Set(
+      [...result.data.markdownTags.group, ...result.data.asciidocTags.group].map(
+        (value) => value.fieldValue,
+      ),
+    ),
+  );
+  tags.forEach((tag) => {
+    createPage({
+      path: `/tags/${tag}`,
+      component: path.resolve('./src/templates/tag-index.tsx'),
+      context: {
+        tag: tag,
       },
     });
   });
