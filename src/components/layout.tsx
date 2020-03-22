@@ -66,7 +66,7 @@ export default (data: { location: { pathname: string }; title: string; children:
       <main>{children}</main>
       <footer
         style={{
-          borderTop: `1px solid darkgray`,
+          borderTop: `1px solid rgba(0, 0, 0, 0.2)`,
         }}
       >
         © {new Date().getFullYear()}, Built with

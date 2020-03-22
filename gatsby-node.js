@@ -39,6 +39,16 @@ exports.createPages = async ({ graphql, actions }) => {
           }
         }
       }
+      markdownTags: allMarkdownRemark(limit: 1000) {
+        group(field: frontmatter___tags) {
+          fieldValue
+        }
+      }
+      asciidocTags: allAsciidoc(limit: 1000) {
+        group(field: pageAttributes___tags) {
+          fieldValue
+        }
+      }
     }
   `);
 
@@ -66,4 +76,92 @@ exports.createPages = async ({ graphql, actions }) => {
       },
     });
   });
+
+  const tags = Array.from(
+    new Set(
+      [...result.data.markdownTags.group, ...result.data.asciidocTags.group].map(
+        (value) => value.fieldValue,
+      ),
+    ),
+  );
+  tags.forEach((tag) => {
+    createPage({
+      path: `/tags/${tag}`,
+      component: path.resolve('./src/templates/tag-index.tsx'),
+      context: {
+        tag: tag,
+      },
+    });
+  });
+};
+
+exports.createSchemaCustomization = ({ actions, schema }) => {
+  const { createTypes } = actions;
+  const typeDefs = `
+    type File implements Node {
+      childAsciidoc: Asciidoc
+      childMarkdownRemark: MarkdownRemark
+    }
+  `;
+  createTypes(typeDefs);
+
+  const markdownTypeDefs = `
+    type MarkdownRemark implements Node {
+      id: ID!
+      html: String!
+      excerpt: String!
+      fields: MarkdownRemarkFields
+      frontmatter: MarkdownRemarkFrontmatter
+    }
+    type MarkdownRemarkFields {
+      slug: String!
+    }
+    type MarkdownRemarkFrontmatter {
+      title: String!
+      date: Date
+      tags: [String]!
+    }
+  `;
+  createTypes(markdownTypeDefs);
+
+  const asciidocTypeDefs = `
+    type Asciidoc implements Node {
+      id: ID!
+      html: String!
+      document: AsciidocDocument
+      fields: AsciidocFields
+      revision: AsciidocRevision
+      pageAttributes: AsciidocPageAttributes
+    }
+    type AsciidocDocument {
+      title: String!
+    }
+    type AsciidocFields {
+      slug: String!
+    }
+    type AsciidocRevision {
+      date: Date
+    }
+  `;
+  createTypes(asciidocTypeDefs);
+
+  const additionalTypeDefs = [
+    schema.buildObjectType({
+      name: `AsciidocPageAttributes`,
+      fields: {
+        description: 'String',
+        tags: {
+          type: '[String]!',
+          resolve(parent) {
+            const tags = JSON.parse(parent.tags.replace(/'/g, '"'));
+            if (Array.isArray(tags)) return tags;
+            else if (typeof tags === 'string') return [tags];
+            else return [];
+          },
+        },
+      },
+      interfaces: [`Node`],
+    }),
+  ];
+  createTypes(additionalTypeDefs);
 };

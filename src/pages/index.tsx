@@ -1,5 +1,6 @@
 import SEO from '../components/seo';
 import Bio from '../components/bio';
+import Tags from '../components/tags';
 import Layout from '../components/layout';
 import { rhythm } from '../utils/typography';
 
@@ -29,6 +30,7 @@ declare interface PageListObject {
           };
           pageAttributes: {
             description: string;
+            tags: Array<string>;
           };
         };
         childMarkdownRemark: {
@@ -39,6 +41,7 @@ declare interface PageListObject {
           frontmatter: {
             date: Date;
             title: string;
+            tags: Array<string>;
           };
         };
       };
@@ -51,6 +54,7 @@ type ListItemObject = {
   title: string;
   description: string;
   date: Date;
+  tags: Array<string>;
 };
 
 export default (result: { data: PageListObject; location: { pathname: string } }) => {
@@ -67,6 +71,7 @@ export default (result: { data: PageListObject; location: { pathname: string } }
           title: child.document.title,
           description: child.pageAttributes.description,
           date: child.revision.date,
+          tags: child.pageAttributes.tags,
         };
         return item;
       } else {
@@ -76,6 +81,7 @@ export default (result: { data: PageListObject; location: { pathname: string } }
           title: child.frontmatter.title,
           description: child.excerpt,
           date: child.frontmatter.date,
+          tags: child.frontmatter.tags,
         };
         return item;
       }
@@ -100,6 +106,9 @@ export default (result: { data: PageListObject; location: { pathname: string } }
                 </Link>
               </h3>
               <small>{moment(page.date).format('lll')}</small>
+              <small style={{ marginLeft: `1rem` }}>
+                {page.tags.map((tag) => '[' + tag + ']')}
+              </small>
             </header>
             <section>
               <p dangerouslySetInnerHTML={{ __html: page.description }} />
@@ -107,6 +116,8 @@ export default (result: { data: PageListObject; location: { pathname: string } }
           </article>
         );
       })}
+      <hr />
+      <Tags />
     </Layout>
   );
 };
@@ -125,6 +136,7 @@ export const pageQuery = graphql`
             frontmatter {
               date
               title
+              tags
             }
           }
           childAsciidoc {
@@ -137,6 +149,7 @@ export const pageQuery = graphql`
             }
             pageAttributes {
               description
+              tags
             }
             revision {
               date
