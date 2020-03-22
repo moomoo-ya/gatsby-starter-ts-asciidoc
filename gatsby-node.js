@@ -153,7 +153,9 @@ exports.createSchemaCustomization = ({ actions, schema }) => {
         tags: {
           type: '[String]!',
           resolve(parent) {
-            if (parent.tags) return JSON.parse(parent.tags.replace(/'/g, '"'));
+            const tags = JSON.parse(parent.tags.replace(/'/g, '"'));
+            if (Array.isArray(tags)) return tags;
+            else if (typeof tags === 'string') return [tags];
             else return [];
           },
         },
