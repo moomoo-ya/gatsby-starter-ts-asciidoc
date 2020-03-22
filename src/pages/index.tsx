@@ -1,5 +1,6 @@
 import SEO from '../components/seo';
 import Bio from '../components/bio';
+import Tags from '../components/tags';
 import Layout from '../components/layout';
 import { rhythm } from '../utils/typography';
 
@@ -115,6 +116,8 @@ export default (result: { data: PageListObject; location: { pathname: string } }
           </article>
         );
       })}
+      <hr />
+      <Tags />
     </Layout>
   );
 };

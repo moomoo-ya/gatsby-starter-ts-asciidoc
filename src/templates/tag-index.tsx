@@ -1,6 +1,6 @@
 import Layout from '../components/layout';
 import SEO from '../components/seo';
-import { rhythm, scale } from '../utils/typography';
+import { rhythm } from '../utils/typography';
 import 'moment/locale/ja';
 
 import React from 'react';
@@ -68,7 +68,6 @@ export default (result: {
   const count = data.allMarkdownRemark.totalCount + data.allAsciidoc.totalCount;
   const pages = [...data.allAsciidoc.edges, ...data.allMarkdownRemark.edges]
     .filter((edge) => {
-      console.log(edge);
       return edge.childAsciidoc || edge.childMarkdownRemark;
     })
     .map((edge) => {
