@@ -12,13 +12,22 @@ class CodeblockConverter {
     if (node.getNodeName() === 'listing' && node.getStyle() === 'source') {
       const language = node.attributes.$$smap.language;
       loadLanguages([language]);
-      const highlighted = Prism.highlight(node.getContent(), Prism.languages[language], language);
-      return (
-        `<div class="listingblock"><div class="title">${node.getTitle()}</div><div class="content"><pre class="highlight language-${language}"><code class="language-${language}">` +
-        highlighted
-          .replace(/&amp;/g, '&')
+      const title = node.getTitle() ? `<div class="title">${node.getTitle()}</div>` : '';
+      const highlighted = Prism.highlight(
+        node
+          .getContent()
           .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>') +
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&'),
+        Prism.languages[language],
+        language,
+      );
+      return (
+        `<div class="listingblock">` +
+        title +
+        `<div class="content"><pre class="highlight language-${language}">` +
+        `<code class="language-${language}">` +
+        highlighted +
         `</code></pre></div></div>`
       );
     }
